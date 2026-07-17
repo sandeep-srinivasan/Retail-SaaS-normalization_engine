@@ -60,7 +60,7 @@ to avoid comparing every new record against the entire catalog.
 ## Files
 
 ```
-normalization_engine/
+Retail-SaaS-normalization_engine/
 ├── schema.py               # RawProduct / ExtractedAttributes / CanonicalProduct
 ├── attribute_extractor.py  # title -> structured attributes
 ├── dedup.py                # clustering of likely-duplicate raw records
