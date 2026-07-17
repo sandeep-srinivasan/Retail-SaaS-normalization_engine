@@ -1,0 +1,11 @@
+[
+  {"platform": "amazon", "raw_title": "Nike Air Max Black 42", "price": 8999.0, "rating": 4.3, "source_url": "https://amazon.example/p/1"},
+  {"platform": "flipkart", "raw_title": "Nike Airmax Shoes Size 8 Black", "price": 8499.0, "rating": 4.1, "source_url": "https://flipkart.example/p/2"},
+  {"platform": "myntra", "raw_title": "Nike Air Max Running Shoes - Black", "price": 9199.0, "rating": 4.4, "source_url": "https://myntra.example/p/3"},
+  {"platform": "amazon", "raw_title": "Adidas Ultraboost Running Shoes White Size 9", "price": 12999.0, "rating": 4.5, "source_url": "https://amazon.example/p/4"},
+  {"platform": "flipkart", "raw_title": "Adidas Ultraboost White Sz 9", "price": 12499.0, "rating": 4.2, "source_url": "https://flipkart.example/p/5"},
+  {"platform": "myntra", "raw_title": "Levi's 511 Slim Fit Jeans Blue Denim 32", "price": 3499.0, "rating": 4.0, "source_url": "https://myntra.example/p/6"},
+  {"platform": "amazon", "raw_title": "Levis Men Blue Denim Slim Jeans Size: 32", "price": 3299.0, "rating": 3.9, "source_url": "https://amazon.example/p/7"},
+  {"platform": "flipkart", "raw_title": "Puma Cotton T-Shirt Grey L", "price": 899.0, "rating": 4.0, "source_url": "https://flipkart.example/p/8"},
+  {"platform": "amazon", "raw_title": "Reebok Classic Sneakers Navy 41", "price": 4999.0, "rating": 4.1, "source_url": "https://amazon.example/p/9"}
+]
