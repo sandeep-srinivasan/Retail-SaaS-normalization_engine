@@ -1,7 +1,7 @@
 # Product Normalization Engine
 
 A prototype for the "clean, structured catalog" stage of the Multi-Platform
-Catalog Intelligence Engine (see `../design/report.pdf` for the full HLD/LLD).
+Catalog Intelligence Engine (see `../Rubick_AI_Catalog_Intelligence_Engine_Design.pdf` for the full HLD/LLD).
 It takes messy, platform-sourced product listings and resolves them into
 deduplicated canonical products with structured attributes.
 
@@ -36,7 +36,7 @@ code. Specifically, it does **not** include:
 No external dependencies; standard library only.
 
 ```bash
-cd normalization_engine
+cd Retail-SaaS-normalization_engine
 python3 main.py                    # runs against sample_data.json
 python3 main.py path/to/other.json # or against your own input
 
