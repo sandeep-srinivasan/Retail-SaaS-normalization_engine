@@ -1,0 +1,3 @@
+# No external dependencies - this prototype intentionally uses only the
+# Python standard library (see README.md for rationale). Kept as an empty
+# file so the repo layout matches what a reviewer expects to find.
