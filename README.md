@@ -17,9 +17,12 @@ interesting logic.
 ## Scope and honest limitations
 
 This is a prototype meant to be read in about fifteen minutes, not production
-code. Specifically, it does **not** include:
+code. It does persist its output to SQLite (`normalization.db`), so it is a
+genuinely working system rather than a script that only prints JSON — but it
+still does **not** include:
 
-- A database or queue. It runs in-memory against `sample_data.json`.
+- A message queue or streaming ingestion. It runs in batch, in-process,
+  against `sample_data.json` or any JSON file you point it at.
 - A learned similarity model. Deduplication uses token-set overlap
   (`difflib.SequenceMatcher` over sorted, deduplicated tokens) plus a small
   brand/size/colour reconciliation layer, not embeddings. This works well on
@@ -30,19 +33,42 @@ code. Specifically, it does **not** include:
   covers a handful of sizes as an illustration of the approach described in
   the design document; a production version would need a complete,
   category-aware conversion table.
+- Postgres. SQLite is used so the prototype has zero setup cost; `db.py` is
+  written so that swapping in a real Postgres connection is a change to the
+  connection object, not to the calling code or SQL shape.
+
+**A bug worth being upfront about:** the first version of `canonical_id`
+generation used `uuid4()`, which meant re-running the pipeline against the
+same input silently duplicated rows in storage instead of updating them,
+since every run minted fresh, unrelated IDs for the same real-world products.
+`main.py` now derives `canonical_id` from a hash of the cluster's underlying
+listings, so the same input always resolves to the same ID and reruns are
+genuinely idempotent. `tests/test_db.py::test_full_pipeline_rerun_is_idempotent`
+exercises this against the real pipeline path specifically because the
+original unit test (`test_rerunning_pipeline_is_idempotent`) used a
+hardcoded ID and would not have caught the bug.
 
 ## Running it
 
-No external dependencies; standard library only.
+No external dependencies; standard library only (SQLite is part of the
+Python standard library via `sqlite3`).
 
 ```bash
-cd Retail-SaaS-normalization_engine
-python3 main.py                    # runs against sample_data.json
+cd normalization_engine
+python3 main.py                    # runs against sample_data.json, persists to normalization.db
 python3 main.py path/to/other.json # or against your own input
+python3 main.py --db custom.db     # persist to a specific db file
+python3 main.py --no-db            # skip persistence, print only
 
 python3 tests/test_attributes.py
 python3 tests/test_dedup.py
+python3 tests/test_db.py
 ```
+
+Re-running `main.py` against the same input is idempotent: `canonical_id` is
+derived from the underlying listings' content, so the same real-world
+product resolves to the same row on every run rather than being duplicated
+(see "A bug worth being upfront about" below).
 
 ## How this would plug into the full pipeline
 
@@ -50,24 +76,28 @@ In the architecture described in the design document, this logic would live
 inside the "Normalization & Enrichment Workers" consuming from the
 `raw.products` Kafka topic. `RawProduct` in `schema.py` maps onto the message
 schema on that topic; `CanonicalProduct` maps onto a write into the
-`canonical_product` / `product_variant` / `platform_listing` tables. The
-`cluster_products` function in `dedup.py` would need to be reworked from a
-batch, in-memory operation into an incremental one, matching each new record
-against existing canonical products already in Postgres rather than
-reclustering from scratch, and using a blocking key (brand + coarse category)
-to avoid comparing every new record against the entire catalog.
+`canonical_product` / `product_variant` / `platform_listing` tables, which
+`db.py` already approximates with real SQL (simplified to two tables rather
+than three, and SQLite rather than Postgres). The `cluster_products` function
+in `dedup.py` would need to be reworked from a batch, in-memory operation
+into an incremental one, matching each new record against existing canonical
+products already in the database rather than reclustering from scratch, and
+using a blocking key (brand + coarse category) to avoid comparing every new
+record against the entire catalog.
 
 ## Files
 
 ```
-Retail-SaaS-normalization_engine/
+normalization_engine/
 ├── schema.py               # RawProduct / ExtractedAttributes / CanonicalProduct
 ├── attribute_extractor.py  # title -> structured attributes
 ├── dedup.py                # clustering of likely-duplicate raw records
-├── main.py                 # end-to-end pipeline runner
+├── db.py                   # SQLite persistence (canonical_product, platform_listing)
+├── main.py                 # end-to-end pipeline runner: load -> cluster -> extract -> persist
 ├── sample_data.json        # nine messy, cross-platform sample listings
 ├── requirements.txt        # empty on purpose - stdlib only
 └── tests/
     ├── test_attributes.py
-    └── test_dedup.py
+    ├── test_dedup.py
+    └── test_db.py           # persistence + end-to-end idempotency
 ```
